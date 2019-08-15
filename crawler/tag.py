@@ -8,11 +8,19 @@
 '''
 
 class Tag:
+    
     # Defines the tag and identifies its mother tag
-    def __init__(self, motherTag):
+    def __init__(self, tagType, motherTag):
+
+        # The mother tag of the tag, so we can track it 
         self.mother = motherTag
+
+        # The type of the tag 
+        self.type = tagType
+
         # An array that stores the properties of the tag such as class and id properties
         self.props = []
+
         # An array that stoes the content
         self.content = []
 
