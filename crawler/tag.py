@@ -11,7 +11,7 @@
 class Tag:
 
     # Defines the tag and identifies its mother tag
-    def __init__(self, tagType='', motherTag=''):
+    def __init__(self, tagType='', motherTag='', self_closing=False):
         # The mother tag of the tag, so we can track it
         self.mother = motherTag
 
@@ -23,3 +23,6 @@ class Tag:
 
         # An array that stores the content
         self.content = []
+
+        # A boolean that shows if the tag is self-closing or not
+        self.selfClosing = 
