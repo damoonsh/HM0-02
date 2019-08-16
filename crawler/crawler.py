@@ -11,23 +11,27 @@ class Crawler:
 
     # Initializing the object
     def __init__(self, urlToParse):
-        self.url = urlToParse
-        self.HTML = requests.get(urlToParse).text
+        self.url = urlToParse # The url that is being tracked and parsed
+        self.HTML = requests.get(urlToParse).text # The html content transfered to a string fomat
+
+        # The writer that one writes the html format, the other one is a tester 
         self.writer = open("checks.txt", "w+")
-        # self.HTMLWriter = open("content.html", "w+")
-        # self.b = BeautifulSoup(self.HTML, 'html.parser').prettify()
+        self.HTMLWriter = open("content.html", "w+")
+        self.b = BeautifulSoup(self.HTML, 'html.parser').prettify()
         # self.writeHTML(self.b)
+        # Tag container
         self.tags = []
+        # Traverse through the html and send the tag properties to the tags array
         self.traverse()
 
     # Goes through the text with a for and breaks the html 
     # into related tags with child-parent format, So the 
-    # tracking would be relatively simple
+    # tracking would be relatively simpler
     def traverse(self):
         # The initial mother tag is basically none
-        # Because the first tag didn't hav a mother tag
+        # Because the first tag doesn't have a mother tag, 
+        # it needs to be started at some point
         motherTag = Tag()
-        selfClosing, haveProps = False, False
 
         # Going through the html and identifying tags and manipulating them
         for index in range(0, len(self.HTML)):
@@ -62,87 +66,77 @@ class Crawler:
                         motherTag = childTag.mother
                     self.write("End of the tag, going to back to {}".format(motherTag.type))
 
-    """ 
-        1. Returns the type of tag that has been detected
-        Note: It is crucial to identify if the tag is self-closing or not
-    """
-    def tag_type(self, index):
-        # The while loop that identifies the type of the tag
-        tmp_tag = ''  # The temporary container that gets the tag type
-        self_closing = False
 
-        while self.HTML[index + 1] != ' ' and self.HTML[index + 1] != '>' and self.HTML[index] != '/':
+    """
+        it will go through the text where the index was given
+        and it will check for the props, if the tag is self closing 
+        and the type of the tag, so it will return:
+            1. Tag type
+            2. Props, if it has any
+            3. Identify the Tag as self-closing or not
+    """
+    def get_tag_vals(self, index):
+        # Initials variables
+        tag_type = ''
+        selfClosing = False
+        props = []
+
+        # Starting from the '>', we should stop 
+        # when encountering a ' ' or '>' or '/'
+        while (self.HTML[index + 1] != ' ' and self.HTML[index + 1] != '>' and self.HTML[index] != '/'):
             if index < len(self.HTML) - 1:
                 index += 1
             else:
                 break
-
-            tmp_tag += self.HTML[index]
-
-        self_closing = self.if_selfClosing(index)
+            # Add the characters to the tag_type
+            tag_type += self.HTML[index]
         
-        if self.HTML[index + 1] == ' ':
-            prop = True
-        else: 
-            prop = False
+        index += 1 # proceed in the index
 
-        return index, tmp_tag, self_closing, prop
+        # After exitting the first while loop, it should be checked 
+        # To see if the ending was because of '/' or '>'
+        if self.HTML[index] == '/':
+            # Self closing tag, return the with no props
+            return tag_type, props, True, index
+        elif self.HTML[index] == '>':
+            # Not a self-closing tag with no props
+            return tag_type, props, selfClosing, index
 
-    # Checks if the tag is self-closing or not
-    def if_selfClosing(self, index):
-        # Whil not reached to the end of the tag
-        while self.HTML[index] != '>':
-            if index < len(self.HTML) - 1:
-                index += 1
-            else:
-                break
-
-        if self.HTML[index - 1] == '/':
-            return True
-
-        return False
-
-    
-    """ 
-        2. Gets the props of the tag:
-            - it will get the index and they will be two kind of values,
-            the dict type wich will be {'header': ['value1', 'value2' ,...]} and the sth format
-    """
-    def get_props(self,index):
-        # The props of the tag
-        tmp_header = ''
-        tmp_val = []
-        tmp_props = [] # Keeps the data about the tag properties
-
-        # A variable that identifies if it had reached a '=' or not
-        equals = False
-
-        # Since we are within the tag, then the end of it would be '>'
-        while self.HTML[index + 1] != '>' or self.HTML[index + 1] != '/':
-            # If encountered a '=', then we are in the dict format
-            if self.HTML[index] == '=':
-                index += 1 # So, proceed through the text and don't get the '='
-                equals = True
-
-            # if it was anything but ' ' then save it
-            if self.HTML[index] != ' ' and not equals: # Get into header
+        # If the function is still running the check for props begins:
+        # it will get the index and they will be two kind of values,the 
+        # dict type wich will be {'header': ['value1', 'value2', ...]} and the sth format
+        tmp_header = '' # gets the headers
+        vals = [] # gets the values for the headers
+        # If a '""' was detected then it will be the second format and 
+        # the data should be gotten till the end of the ""s
+        
+        # The traversing should be continued till the '/' or '>' were detected
+        while self.HTML[index + 1] != '>' and self.HTML[index + 1] != '/' :
+            # Check for the start of the qoutes
+            if self.HTML[index] != ' ' and self.HTML[index] != '=' and self.HTML[index] != '"':
                 tmp_header += self.HTML[index]
-            elif self.HTML[index] != ' ' and equals: # Get into value
-                tmp_val += self.HTML[index]
+            elif self.HTML[index] == '"':
+                tmp_val = ''
+                while self.HTML[index + 1] != '"':
+                    if self.HTML[index] != ' ': 
+                        tmp_val += self.HTML[index]
+                    else:
+                        vals.append(tmp_val)
+                        tmp_val= ''
 
-            # If it was ' ', then append to the props
-            if self.HTML[index] == ' ':
-                equals = False # resetting the equals to False again
-                if tmp_val != '': # Form of dict
-                    tmp_props.append({tmp_header: tmp_val})
-                else: # Form of no-dict
-                    tmp_props.append(tmp_header)            
-            
-            # Prevent the erros
-            if index < len(self.HTML) - 1:
                 index += 1
-            else:
-                break
+
+                props.append({tmp_header: vals})
+                vals, tmp_header = [], '' # reset the whole thing
+
+        # After exitting the first while loop, it should be checked
+        # To see if the ending was because of '/' or '>'
+        if self.HTML[index] == '/':
+            # Self closing tag, return the with no props
+            return tag_type, props, True, index
+        elif self.HTML[index] == '>':
+            # Not a self-closing tag with no props
+            return tag_type, props, selfClosing, index            
 
 
     # Writes to the tag

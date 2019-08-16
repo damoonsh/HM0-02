@@ -25,4 +25,10 @@ class Tag:
         self.content = []
 
         # A boolean that shows if the tag is self-closing or not
-        self.selfClosing = 
+        self.selfClosing = self_closing
+
+    # Describes the properties of the tag, 
+    # just for checking and loggin(no actual usage)
+    def desribe(self):
+        return ("Tag Type: {}, mother:{}, props:{}, content:{}, self-closing:{}".format(self.type, self.mother.type,self.props, self.content,self.selfClosing))
+
