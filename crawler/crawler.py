@@ -18,6 +18,7 @@ class Crawler:
         self.writer = open("checks.txt", "w+")
         self.HTMLWriter = open("content.html", "w+")
         self.b = BeautifulSoup(self.HTML, 'html.parser').prettify()
+        self.HTML = self.b
         # self.writeHTML(self.b)
         # Tag container
         self.tags = []
@@ -32,6 +33,8 @@ class Crawler:
         # Because the first tag doesn't have a mother tag, 
         # it needs to be started at some point
         motherTag = Tag()
+        properties = []
+        tagType ,selfClosing = '', False
 
         # Going through the html and identifying tags and manipulating them
         for index in range(0, len(self.HTML)):
@@ -41,11 +44,8 @@ class Crawler:
                 # Avoiding the comments and end of the tags
                 if self.HTML[index] == '<' and self.HTML[index + 1] != '/' and self.HTML[index + 1] != '!':
                     # Get the type of tag that is encountered
-                    index, tagType, selfClosing, haveProps = self.tag_type(index)
-                    
-                    # Get the props of the tag
-                    if haveProps:
-                        get_props()
+                    tagType, selfClosing, properties, index = self.get_tag_vals(index)
+                    self.write("returned index: {}".format(index))
 
                     # if it wasn't a !DOCTYPE thing then:
                     # initialize a mother tag and name it
@@ -53,9 +53,8 @@ class Crawler:
                         # Initializing a tag with the type and mother tag
                         childTag = Tag(tagType, motherTag)
                         motherTag.content.append(childTag)
-
+                        
                         # Simple logging
-                        self.write("type: {}, selfClosing: {}, mother: {}".format(tagType, selfClosing, childTag.mother.type))
                         motherTag = childTag
 
                 # if we have reached to the end of the tag that means 
@@ -90,16 +89,19 @@ class Crawler:
                 break
             # Add the characters to the tag_type
             tag_type += self.HTML[index]
-        
+        self.write("[0]Tag Type: {}".format(tag_type)) # Checking the tag type identification
         index += 1 # proceed in the index
 
         # After exitting the first while loop, it should be checked 
         # To see if the ending was because of '/' or '>'
         if self.HTML[index] == '/':
             # Self closing tag, return the with no props
+            self.write("[0.5A], self-closing tag with no props, returned index: {}".format(index))
             return tag_type, props, True, index
         elif self.HTML[index] == '>':
             # Not a self-closing tag with no props
+            self.write(
+                "[0.5A], not a self-closing tag with no props, returned index: {}".format(index))
             return tag_type, props, selfClosing, index
 
         # If the function is still running the check for props begins:
@@ -112,8 +114,10 @@ class Crawler:
         
         # The traversing should be continued till the '/' or '>' were detected
         while self.HTML[index + 1] != '>' and self.HTML[index + 1] != '/' :
+            self.write("looking for props")
             # Check for the start of the qoutes
             if self.HTML[index] != ' ' and self.HTML[index] != '=' and self.HTML[index] != '"':
+                ("Header")
                 tmp_header += self.HTML[index]
             elif self.HTML[index] == '"':
                 tmp_val = ''
@@ -124,11 +128,20 @@ class Crawler:
                         vals.append(tmp_val)
                         tmp_val= ''
 
+                    index += 1
+
                 index += 1
 
                 props.append({tmp_header: vals})
                 vals, tmp_header = [], '' # reset the whole thing
-
+            
+            
+            if index < len(self.HTML) - 1:
+                index += 1
+            else:
+                break
+            
+        self.write("Props: {}".format(props))
         # After exitting the first while loop, it should be checked
         # To see if the ending was because of '/' or '>'
         if self.HTML[index] == '/':
@@ -136,7 +149,11 @@ class Crawler:
             return tag_type, props, True, index
         elif self.HTML[index] == '>':
             # Not a self-closing tag with no props
-            return tag_type, props, selfClosing, index            
+            return tag_type, props, selfClosing, index
+
+        
+        return tag_type, props, selfClosing, index
+        
 
 
     # Writes to the tag
