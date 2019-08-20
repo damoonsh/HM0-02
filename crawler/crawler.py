@@ -12,14 +12,13 @@ class Crawler:
     # Initializing the object
     def __init__(self, urlToParse):
         self.url = urlToParse # The url that is being tracked and parsed
-        self.HTML = requests.get(urlToParse).text # The html content transfered to a string fomat
+        self.HTML = BeautifulSoup(requests.get(
+            urlToParse).text, 'html.parser').prettify() # The html content transfered to a string fomat
 
         # The writer that one writes the html format, the other one is a tester 
         self.writer = open("checks.txt", "w+")
         self.HTMLWriter = open("content.html", "w+")
-        self.b = BeautifulSoup(self.HTML, 'html.parser').prettify()
-        self.HTML = self.b
-        # self.writeHTML(self.b)
+        
         # Tag container
         self.tags = []
         # Traverse through the html and send the tag properties to the tags array
@@ -36,16 +35,15 @@ class Crawler:
         properties = []
         tagType ,selfClosing = '', False
 
-        # Going through the html and identifying tags and manipulating them
+        # Going through the html and identifying tags and manipulating them | Main part 
         for index in range(0, len(self.HTML)):
             # In order to avoid errors, checking for the end of the string
             if index < len(self.HTML) - 1:
                 # Find the start of the tag
                 # Avoiding the comments and end of the tags
-                if self.HTML[index] == '<' and self.HTML[index + 1] != '/' and self.HTML[index + 1] != '!':
-                    # Get the type of tag that is encountered
+                if self.HTML[index] == '<' and self.HTML[index + 1] != '/' and self.HTML[index] != '!':
+                    # Get the values related to the tag
                     tagType, selfClosing, properties, index = self.get_tag_vals(index)
-                    self.write("returned index: {}".format(index))
 
                     # if it wasn't a !DOCTYPE thing then:
                     # initialize a mother tag and name it
@@ -55,11 +53,14 @@ class Crawler:
                         motherTag.content.append(childTag)
                         
                         # Simple logging
+                        self.write("[LOGGING]:motherTag: {}, childTag: {}".format(motherTag.describe(), childTag.describe()))
+
                         motherTag = childTag
 
                 # if we have reached to the end of the tag that means 
                 # the mother and child should be resetted
                 if self.HTML[index] == '<' and self.HTML[index + 1] == '/':
+                    
                     # If the mother tag had a mother tag then switch the mother tags
                     if childTag.mother != '':
                         motherTag = childTag.mother
@@ -111,31 +112,38 @@ class Crawler:
         vals = [] # gets the values for the headers
         # If a '""' was detected then it will be the second format and 
         # the data should be gotten till the end of the ""s
-        
+        notSaid = False
         # The traversing should be continued till the '/' or '>' were detected
-        while self.HTML[index + 1] != '>' and self.HTML[index + 1] != '/' :
-            self.write("looking for props")
+        while self.HTML[index + 1] != '>' and self.HTML[index + 1] != '/' or self.HTML[index + 1] != '>' and self.HTML[index + 1] != '\\':
+            if not notSaid :
+                self.write("looking for props...")
+                notSaid = True
             # Check for the start of the qoutes
             if self.HTML[index] != ' ' and self.HTML[index] != '=' and self.HTML[index] != '"':
                 ("Header")
                 tmp_header += self.HTML[index]
-            elif self.HTML[index] == '"':
+            elif self.HTML[index] == '"' and tmp_header != '':
                 tmp_val = ''
-                while self.HTML[index + 1] != '"':
+                index += 1
+                while self.HTML[index] != '"':
                     if self.HTML[index] != ' ': 
                         tmp_val += self.HTML[index]
                     else:
                         vals.append(tmp_val)
                         tmp_val= ''
 
-                    index += 1
-
-                index += 1
-
+                     # Goes through the string
+                    if index < len(self.HTML) - 1:
+                        index += 1
+                    else:
+                        break
+                    # self.write(tmp_val)
+                vals.append(tmp_val)
+                # when it comes out of the loop, everything should be added
                 props.append({tmp_header: vals})
                 vals, tmp_header = [], '' # reset the whole thing
             
-            
+            # Goes through the string
             if index < len(self.HTML) - 1:
                 index += 1
             else:
@@ -166,3 +174,4 @@ class Crawler:
 
 
 crawler = Crawler('https://ca.finance.yahoo.com')
+print(crawler.tags)
