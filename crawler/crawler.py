@@ -126,7 +126,7 @@ class Crawler:
                 tmp_val = ''
                 index += 1
                 while self.HTML[index] != '"':
-                    if self.HTML[index] != ' ': 
+                    if (self.HTML[index] != ' ' or (self.HTML[index] == ' ' and self.HTML[index - 1] == ':')) and self.HTML[index] != ',': 
                         tmp_val += self.HTML[index]
                     else:
                         vals.append(tmp_val)
