@@ -3,7 +3,7 @@
     of a webstie and breaks into tags
 """
 import requests
-from tag import Tag
+from utilities.tag import Tag
 from bs4 import BeautifulSoup
 
 
@@ -12,8 +12,7 @@ class Crawler:
     # Initializing the object
     def __init__(self, urlToParse):
         self.url = urlToParse # The url that is being tracked and parsed
-        self.HTML = BeautifulSoup(requests.get(
-            urlToParse).text, 'html.parser').prettify() # The html content transfered to a string fomat
+        self.HTML = BeautifulSoup(requests.get(urlToParse).text, 'html.parser').prettify() # The html content transfered to a string fomat
 
         # The writer that one writes the html format, the other one is a tester 
         self.writer = open("checks.txt", "w+")
@@ -21,6 +20,7 @@ class Crawler:
         
         # Tag container
         self.tags = []
+
         # Traverse through the html and send the tag properties to the tags array
         self.traverse()
 
@@ -162,8 +162,6 @@ class Crawler:
         
         return tag_type, props, selfClosing, index
         
-
-
     # Writes to the tag
     def write(self, text):
         self.writer.write(text + "\n")
@@ -171,7 +169,6 @@ class Crawler:
     # Writes to the tag
     def writeHTML(self, text):
         self.HTMLWriter.write(text)
-
 
 crawler = Crawler('https://ca.finance.yahoo.com')
 print(crawler.tags)
