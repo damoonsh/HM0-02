@@ -15,8 +15,9 @@ class Crawler:
         self.HTML = BeautifulSoup(requests.get(urlToParse).text, 'html.parser').prettify() # The html content transfered to a string fomat
 
         # The writer that one writes the html format, the other one is a tester 
-        self.writer = open("checks.txt", "w+")
-        self.HTMLWriter = open("content.html", "w+")
+        self.writer = open("../logs/checks.txt", "w+")
+        self.HTMLWriter = open("../logs/content.html", "w+")
+        self.writeHTML(self.HTML)
         
         # Tag container
         self.tags = []
