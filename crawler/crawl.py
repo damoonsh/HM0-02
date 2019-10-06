@@ -28,19 +28,16 @@ class Crawler:
     # into related tags with child-parent format, So the 
     # tracking would be relatively simpler
     def traverse(self):
-        # The initial mother tag is basically none
-        # Because the first tag doesn't have a mother tag, 
-        # it needs to be started at some point
-        motherTag = Tag()
+        # Initialization
+        motherTag = Tag() # The initial mother tag is basically none, because the first tag doesn't have a mother tag,
         properties = []
-        tagType ,selfClosing = '', False
+        tagType ,selfClosing = '', False # It's crucial to divide the tags into self closing and not self closing so the function would look for the end of the tag
 
         # Going through the html and identifying tags and manipulating them | Main part 
         for index in range(0, len(self.HTML)):
             # In order to avoid errors, checking for the end of the string
             if index < len(self.HTML) - 1:
-                # Find the start of the tag
-                # Avoiding the comments and end of the tags
+                # Finding the start of the tag, avoiding the comments and end of the tags
                 if self.HTML[index] == '<' and self.HTML[index + 1] != '/' and self.HTML[index] != '!':
                     # Get the values related to the tag
                     tagType, selfClosing, properties, index = self.get_tag_vals(index)
@@ -93,7 +90,7 @@ class Crawler:
         self.write("[0]Tag Type: {}".format(tag_type)) # Checking the tag type identification
         index += 1 # proceed in the index
 
-        # After exitting the first while loop, it should be checked 
+        # After exiting the first while loop, it should be checked
         # To see if the ending was because of '/' or '>'
         if self.HTML[index] == '/':
             # Self closing tag, return the with no props
@@ -169,6 +166,3 @@ class Crawler:
     # Writes to the tag
     def writeHTML(self, text):
         self.HTMLWriter.write(text)
-
-crawler = Crawler('https://ca.finance.yahoo.com')
-print(crawler.tags)
