@@ -1,1 +1,0 @@
-This directory contains the files that support different parts of the app
